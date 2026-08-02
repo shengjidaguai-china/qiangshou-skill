@@ -254,22 +254,9 @@ qiangshou/
 
 这是第一个公开版本，包含双长文引擎、事实核验、终稿保护、轻量自进化和公众号交付能力。
 
-## 使用许可
-
-本项目源码公开，采用 [PolyForm Noncommercial License 1.0.0](./LICENSE)：
-
-- 允许个人学习、研究、实验和其他非商业用途；
-- 允许在许可规定范围内修改和分发；
-- 不允许未经授权的商业使用；
-- 商业使用或商业集成请通过 GitHub Issue 联系作者另行授权。
-
-由于该许可限制商业使用，本项目属于 **source-available（源码公开）**，不属于 OSI 定义的开源软件。以上说明不是法律意见，具体权利与义务以 LICENSE 原文为准。
-
-## Star History
+## 支持枪手
 
 如果枪手帮你完成了一篇文章、保护了一版终稿，或者让技术项目终于有人愿意读完，请点一个 Star。
-
-[![Star History Chart](https://api.star-history.com/svg?repos=powerycy/qiangshou-skill&type=Date)](https://star-history.com/#powerycy/qiangshou-skill&Date)
 
 <div align="center">
 
