@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "revision": 1,
+  "history_final_count": 3,
+  "rules": {
+    "wechat-image-bounds": {
+      "rule": "公众号正文与封面图片的宽、高均不得超过 2000px；需要缩小时保留原图，另存等比例副本，不拉伸，也不裁掉证据内容。",
+      "explicit": true,
+      "revision": 1,
+      "sources": ["explicit-visual-01"],
+      "status": "effective"
+    }
+  }
+}
