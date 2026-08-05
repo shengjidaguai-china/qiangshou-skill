@@ -12,7 +12,7 @@
 
 ## 先冻结内容，再做视觉层级
 
-排版前确认使用的是最终正文。用户要求“不改内容”时，先运行内容保持校验；排版脚本不得改写、删减、调序或补充正文。
+排版前确认使用的是最终正文。用户明确要求“内容完全不变并验证”时，再运行内容保持校验；排版脚本不得改写、删减、调序或补充正文。写作任务同时完成配图与公众号可复制 HTML 交付后，按 `self-evolution.md` 自动视为终稿并执行轻量自进化，不再等待用户重复确认。
 
 版式服务于叙事推进：
 
@@ -27,12 +27,20 @@
 
 正文片段使用语义标签与内联样式：
 
-- 使用 `section`、`p`、`span`、`strong`、`em`、`blockquote`、`ul`、`ol`、`li`、`pre`、`code`、`img`、`a`、`hr`。
+- 使用 `section`、`p`、`span`、`strong`、`em`、`blockquote`、`ul`、`ol`、`li`、`pre`、`code`、`img`、`hr`、`table`、`thead`、`tbody`、`tr`、`th`、`td`。
+- Markdown 超链接把标签与 URL 显示为普通文字，不生成 `<a>`；公众号终稿不得含可点击链接。
 - 不依赖外部 CSS、外部字体、JavaScript、CSS 变量、动画、固定定位或网格布局。
 - 不把账号会话信息写入 HTML、Markdown、日志或配置。
 - 图片保留清楚的 `alt`；后台排版时按正文顺序上传本地原图。
+- 公众号正文与封面图片的宽、高均不得超过 2000px。排版前扫描全部实际引用图片；超限时保留原图，另存最长边不超过 2000px 的等比例副本，并让公众号稿引用该副本，禁止拉伸或裁掉证据内容。
 
-使用 `scripts/render_wechat_html.py` 生成：
+先检查 Markdown 中所有本地图片的实际尺寸：
+
+```bash
+python3 scripts/validate_wechat_images.py article.md
+```
+
+超限时保留原图并另存等比例副本，更新 Markdown 后重跑至 PASS。再使用 `scripts/render_wechat_html.py` 生成：
 
 ```bash
 python3 scripts/render_wechat_html.py article.md \
@@ -42,6 +50,12 @@ python3 scripts/render_wechat_html.py article.md \
 ```
 
 预览页可以包含本地复制按钮；可复制正文片段本身不得包含脚本。
+
+图片上传或替换为可移植的 HTTPS/data 地址后，验证最终正文片段；本地绝对路径、相对路径、`file:`、超链接和危险标签均应失败：
+
+```bash
+python3 scripts/validate_wechat_html.py article.wechat.html
+```
 
 ## 浏览器草稿流程
 
@@ -60,6 +74,7 @@ python3 scripts/render_wechat_html.py article.md \
 - 标题与正文首句没有重复制造两次开场。
 - 前三屏能看到事件、数字或冲突，以及项目是什么。
 - 图片没有拉伸、裁切正文或出现本地失效地址。
+- 每张实际引用图片的宽、高均不超过 2000px。
 - 数据卡保留日期；用户反馈明确写成用户反馈。
 - GitHub、安装方式和许可证口径准确。
 - 文章末尾没有混入配图提示、事实表或编辑备注。

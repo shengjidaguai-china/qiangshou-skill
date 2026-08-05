@@ -1,4 +1,4 @@
 interface:
   display_name: "枪手"
-  short_description: "写技术项目故事，完成配图、微信排版并保存公众号草稿"
-  default_prompt: "使用 $qiangshou，把我的真实技术项目写成逐步推进的公众号长文，完成配图与微信兼容排版；如我授权操作后台，只保存草稿，不发布。"
+  short_description: "把真实技术素材自适应编排成公众号长文并完成微信排版"
+  default_prompt: "使用 $qiangshou，从真实素材中选择一条主导推进线写成公众号长文，并按我的范围完成配图或微信兼容排版。"

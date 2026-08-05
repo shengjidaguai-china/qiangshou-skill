@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "revision": 5,
+  "history_final_count": 3,
+  "rules": {
+    "plain-direct-voice": {
+      "rule": "用自然、直接的大白话承载鲜明判断，保留作者认可的口语与幽默；专业感由真实数据、实验和权威材料提供，不为“高级感”统一润色。",
+      "explicit": true,
+      "revision": 1,
+      "sources": ["explicit-voice-01"],
+      "status": "effective"
+    },
+    "evidence-led-revision": {
+      "rule": "允许坦率承认结果与预想不同并随证据改判；把复杂方法压缩成普通人能执行和记住的少量步骤，结尾回到普通人的判断与行动。",
+      "explicit": true,
+      "revision": 2,
+      "sources": ["explicit-voice-02"],
+      "status": "effective"
+    },
+    "no-embedded-links": {
+      "rule": "终稿和公众号排版不内置任何超链接；项目地址、论文、Issue、来源和行动入口统一显示为普通文字。",
+      "explicit": true,
+      "revision": 3,
+      "sources": ["explicit-voice-03"],
+      "status": "effective"
+    },
+    "delete-first-deai": {
+      "rule": "终稿去 AI 味采用删除优先：先删不增加事实、因果、判断或人物变化的句子，再做局部改写。少用“稳住”这类模板化安抚词，不为“显得完整”制造冗长列表、重复解释、段尾复述或自动升华；列表仍可用于真实步骤、测试组、判断标准和字段。保留真实的不确定、犹豫、失败、改判与自然口语，不统一润色成标准公关稿；不设机械删字比例，也不机械禁用某个句式。",
+      "explicit": true,
+      "revision": 4,
+      "sources": ["explicit-voice-04"],
+      "status": "effective"
+    },
+    "cross-final-rhythm": {
+      "rule": "综合多个确认终稿中反复出现的句长、口语、断句、删减和取舍，保留自然的不对称节奏，不为整齐而统一段落与句式。",
+      "explicit": true,
+      "revision": 5,
+      "sources": ["explicit-voice-05"],
+      "status": "effective"
+    }
+  }
+}

@@ -47,11 +47,8 @@ def inline_markup(text: str) -> str:
     def link_repl(match: re.Match[str]) -> str:
         label = html.escape(match.group(1))
         href = html.escape(match.group(2), quote=True)
-        return hold(
-            f'<a href="{href}" style="color:{COLORS["blue"]};'
-            'text-decoration:underline;text-underline-offset:3px;">'
-            f"<span>{label}</span></a>"
-        )
+        visible = label if match.group(1).strip() == match.group(2).strip() else f"{label}（{href}）"
+        return hold(f"<span>{visible}</span>")
 
     text = re.sub(r"!\[([^\]]*)\]\(([^)]+)\)", image_repl, text)
     text = re.sub(r"\[([^\]]+)\]\(([^)]+)\)", link_repl, text)
@@ -74,6 +71,84 @@ def inline_markup(text: str) -> str:
         escaped = escaped.replace(html.escape(f"\x00{index}\x00"), value)
         escaped = escaped.replace(f"\x00{index}\x00", value)
     return escaped
+
+
+def table_cells(line: str) -> list[str] | None:
+    stripped = line.strip()
+    if "|" not in stripped:
+        return None
+    if stripped.startswith("|"):
+        stripped = stripped[1:]
+    if stripped.endswith("|"):
+        stripped = stripped[:-1]
+    cells = [cell.strip() for cell in stripped.split("|")]
+    return cells if len(cells) >= 2 else None
+
+
+def is_table_separator(cells: list[str] | None) -> bool:
+    return bool(cells) and all(re.fullmatch(r":?-{3,}:?", cell) for cell in cells)
+
+
+def render_table(headers: list[str], rows: list[list[str]]) -> str:
+    width = len(headers)
+    normalized = [(row + [""] * width)[:width] for row in rows]
+    parts = [
+        '<section style="margin:22px 0;overflow-x:auto;">',
+        f'<table style="width:100%;border-collapse:collapse;table-layout:fixed;color:{COLORS["ink"]};">',
+        "<thead><tr>",
+    ]
+    for header in headers:
+        parts.append(
+            f'<th style="padding:10px 8px;border:1px solid {COLORS["line"]};'
+            f'background:{COLORS["blue_soft"]};font-size:14px;line-height:1.6;text-align:left;">'
+            f"<span>{inline_markup(header)}</span></th>"
+        )
+    parts.append("</tr></thead><tbody>")
+    for row in normalized:
+        parts.append("<tr>")
+        for cell in row:
+            parts.append(
+                f'<td style="padding:10px 8px;border:1px solid {COLORS["line"]};'
+                'font-size:14px;line-height:1.65;vertical-align:top;word-break:break-word;">'
+                f"<span>{inline_markup(cell)}</span></td>"
+            )
+        parts.append("</tr>")
+    parts.append("</tbody></table></section>")
+    return "".join(parts)
+
+
+def extract_tables(source: str) -> tuple[str, dict[str, str]]:
+    """Replace Markdown tables outside code fences with deterministic sentinels."""
+    lines = source.splitlines()
+    output: list[str] = []
+    tables: dict[str, str] = {}
+    in_fence = False
+    index = 0
+    while index < len(lines):
+        stripped = lines[index].strip()
+        if stripped.startswith(("```", "~~~")):
+            in_fence = not in_fence
+            output.append(lines[index])
+            index += 1
+            continue
+        header = table_cells(lines[index]) if not in_fence else None
+        separator = table_cells(lines[index + 1]) if header and index + 1 < len(lines) else None
+        if header and is_table_separator(separator) and len(header) == len(separator or []):
+            rows: list[list[str]] = []
+            index += 2
+            while index < len(lines):
+                row = table_cells(lines[index])
+                if not row:
+                    break
+                rows.append(row)
+                index += 1
+            sentinel = f"@@QIANGSHOU_TABLE_{len(tables)}@@"
+            tables[sentinel] = render_table(header, rows)
+            output.append(sentinel)
+            continue
+        output.append(lines[index])
+        index += 1
+    return "\n".join(output), tables
 
 
 def paragraph(text: str) -> str:
@@ -108,13 +183,23 @@ def heading(level: int, text: str, chapter_index: int) -> str:
 
 
 def render_markdown(source: str) -> tuple[str, dict[str, int | str]]:
+    source, rendered_tables = extract_tables(source)
     lines = source.splitlines()
     output: list[str] = [
         f'<section data-tool="qiangshou" style="margin:0 auto;padding:0 8px;'
         f'color:{COLORS["ink"]};background:{COLORS["paper"]};font-family:'
         '-apple-system,BlinkMacSystemFont,&quot;PingFang SC&quot;,&quot;Microsoft YaHei&quot;,sans-serif;">'
     ]
-    counts = {"h2": 0, "h3": 0, "paragraphs": 0, "images": 0, "quotes": 0, "lists": 0, "code_blocks": 0}
+    counts = {
+        "h2": 0,
+        "h3": 0,
+        "paragraphs": 0,
+        "images": 0,
+        "quotes": 0,
+        "lists": 0,
+        "tables": 0,
+        "code_blocks": 0,
+    }
     title = ""
     paragraph_lines: list[str] = []
     quote_lines: list[str] = []
@@ -195,6 +280,14 @@ def render_markdown(source: str) -> tuple[str, dict[str, int | str]]:
             flush_list()
             in_code = True
             code_lang = stripped[3:].strip()
+            continue
+
+        if stripped in rendered_tables:
+            flush_paragraph()
+            flush_quote()
+            flush_list()
+            output.append(rendered_tables[stripped])
+            counts["tables"] += 1
             continue
 
         heading_match = re.match(r"^(#{1,3})\s+(.+)$", stripped)
