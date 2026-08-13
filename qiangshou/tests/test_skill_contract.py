@@ -18,6 +18,9 @@ class SkillContractTests(unittest.TestCase):
         cls.evolution = (ROOT / "references" / "self-evolution.md").read_text(
             encoding="utf-8"
         )
+        cls.readme = (ROOT / "references" / "github-readme.md").read_text(
+            encoding="utf-8"
+        )
 
     def test_adaptive_orchestrator_uses_one_dominant_progression(self) -> None:
         for intent in ("项目故事", "观点实证"):
@@ -51,6 +54,45 @@ class SkillContractTests(unittest.TestCase):
         self.assertIn("source-id", self.evolution)
         self.assertIn("record --domain text", self.evolution)
         self.assertIn("author-voice-signals.json", self.evolution)
+
+    def test_readme_mode_is_bilingual_and_separate_from_wechat_workflow(self) -> None:
+        combined = self.skill + self.readme + self.scenarios
+        for term in ("README_EN.md", "一键切换", "README_SYNC"):
+            self.assertIn(term, combined)
+        self.assertIn("不要套用公众号长文", self.skill)
+        self.assertIn("英文按英语开发者", combined)
+        self.assertIn("validate_readme_pair.py", combined)
+
+    def test_readme_professionalism_is_evidence_based(self) -> None:
+        for term in ("先读仓库", "基线过滤", "快速开始", "许可证", "Star"):
+            self.assertIn(term, self.readme)
+        self.assertIn("4–8 个信息密度高", self.readme)
+        self.assertIn("Stargazer 头像墙", self.readme)
+        self.assertIn("项目名和一句话价值之后立即放首屏 Star", self.readme)
+        self.assertIn("不逐句机翻", self.readme)
+
+    def test_readme_source_available_license_is_precise(self) -> None:
+        for term in (
+            "source-available",
+            "商业使用需事先取得商业授权",
+            "不要将这种许可证标成 `Open Source`",
+            "首页不展开许可证条款",
+            "CONTRIBUTING.md",
+            "贡献许可/CLA",
+        ):
+            self.assertIn(term, self.readme)
+
+    def test_readme_license_type_is_never_assumed(self) -> None:
+        for term in (
+            "不得预设为非商业",
+            "允许商业使用的开源许可证",
+            "商业专有许可证",
+            "仓库没有 `LICENSE`",
+            "不生成许可证徽章",
+            "不固定显示“非商业 License 徽章”",
+        ):
+            self.assertIn(term, self.readme)
+        self.assertIn("不同许可证的 README 徽章", self.scenarios)
 
 
 if __name__ == "__main__":
