@@ -94,6 +94,20 @@ class SkillContractTests(unittest.TestCase):
             self.assertIn(term, self.readme)
         self.assertIn("不同许可证的 README 徽章", self.scenarios)
 
+    def test_readme_prefers_unmodified_established_license_text(self) -> None:
+        combined = self.skill + self.readme + self.scenarios
+        for term in (
+            "优先采用权利范围匹配的成熟现成协议",
+            "优先选择成熟、版本明确",
+            "PolyForm Noncommercial License 1.0.0",
+            "保持官方原文不变",
+            "不要给 MIT、Apache、GPL 等协议追加",
+            "只有用户明确授权后才起草",
+            "首页不出现许可证",
+        ):
+            self.assertIn(term, combined)
+        self.assertIn("缺失许可证时优先采用现成协议", self.scenarios)
+
 
 if __name__ == "__main__":
     unittest.main()
