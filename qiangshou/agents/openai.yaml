@@ -1,4 +1,4 @@
 interface:
   display_name: "枪手"
-  short_description: "把真实技术素材自适应编排成公众号长文并完成微信排版"
-  default_prompt: "使用 $qiangshou，从真实素材中选择一条主导推进线写成公众号长文，并按我的范围完成配图或微信兼容排版。"
+  short_description: "把真实项目写成公众号长文与中英双语专业 GitHub README"
+  default_prompt: "使用 $qiangshou，核验我的真实项目素材，写成公众号长文或可一键切换中英文的专业 GitHub README。"
