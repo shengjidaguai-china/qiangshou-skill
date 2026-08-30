@@ -35,23 +35,77 @@ def inline_markup(text: str) -> str:
         placeholders.append(value)
         return f"\x00{len(placeholders) - 1}\x00"
 
-    def image_repl(match: re.Match[str]) -> str:
-        alt = html.escape(match.group(1), quote=True)
-        src = html.escape(match.group(2), quote=True)
+    def image_markup(alt_text: str, source: str) -> str:
+        alt = html.escape(alt_text, quote=True)
+        src = html.escape(source, quote=True)
         return hold(
             f'<img src="{src}" alt="{alt}" '
             'style="display:block;width:100%;height:auto;margin:24px auto 8px;'
             'border-radius:12px;border:0;" />'
         )
 
-    def link_repl(match: re.Match[str]) -> str:
-        label = html.escape(match.group(1))
-        href = html.escape(match.group(2), quote=True)
-        visible = label if match.group(1).strip() == match.group(2).strip() else f"{label}（{href}）"
+    def link_markup(label_text: str, destination: str) -> str:
+        label = html.escape(label_text)
+        href = html.escape(destination, quote=True)
+        visible = label if label_text.strip() == destination.strip() else f"{label}（{href}）"
         return hold(f"<span>{visible}</span>")
 
-    text = re.sub(r"!\[([^\]]*)\]\(([^)]+)\)", image_repl, text)
-    text = re.sub(r"\[([^\]]+)\]\(([^)]+)\)", link_repl, text)
+    def closing_bracket(value: str, start: int) -> int | None:
+        escaped = False
+        for position in range(start, len(value)):
+            char = value[position]
+            if escaped:
+                escaped = False
+            elif char == "\\":
+                escaped = True
+            elif char == "]":
+                return position
+        return None
+
+    def closing_parenthesis(value: str, start: int) -> int | None:
+        depth = 1
+        escaped = False
+        for position in range(start, len(value)):
+            char = value[position]
+            if escaped:
+                escaped = False
+            elif char == "\\":
+                escaped = True
+            elif char == "(":
+                depth += 1
+            elif char == ")":
+                depth -= 1
+                if depth == 0:
+                    return position
+        return None
+
+    parsed: list[str] = []
+    position = 0
+    while position < len(text):
+        image = text.startswith("![", position)
+        link = text[position] == "["
+        if not image and not link:
+            parsed.append(text[position])
+            position += 1
+            continue
+        label_start = position + (2 if image else 1)
+        label_end = closing_bracket(text, label_start)
+        if label_end is None or label_end + 1 >= len(text) or text[label_end + 1] != "(":
+            parsed.append(text[position])
+            position += 1
+            continue
+        destination_end = closing_parenthesis(text, label_end + 2)
+        if destination_end is None:
+            raise ValueError("Unclosed Markdown link or image destination")
+        label = text[label_start:label_end]
+        destination = text[label_end + 2:destination_end].strip()
+        if destination.startswith("<") and destination.endswith(">"):
+            destination = destination[1:-1].strip()
+        if not destination:
+            raise ValueError("Empty Markdown link or image destination")
+        parsed.append(image_markup(label, destination) if image else link_markup(label, destination))
+        position = destination_end + 1
+    text = "".join(parsed)
     escaped = html.escape(text, quote=False)
     escaped = re.sub(
         r"`([^`]+)`",
@@ -79,9 +133,37 @@ def table_cells(line: str) -> list[str] | None:
         return None
     if stripped.startswith("|"):
         stripped = stripped[1:]
-    if stripped.endswith("|"):
+    if stripped.endswith("|") and not stripped.endswith("\\|"):
         stripped = stripped[:-1]
-    cells = [cell.strip() for cell in stripped.split("|")]
+    cells: list[str] = []
+    cell: list[str] = []
+    code_ticks = 0
+    position = 0
+    while position < len(stripped):
+        char = stripped[position]
+        if char == "\\" and position + 1 < len(stripped) and stripped[position + 1] == "|":
+            cell.append("|")
+            position += 2
+            continue
+        if char == "`":
+            run_end = position
+            while run_end < len(stripped) and stripped[run_end] == "`":
+                run_end += 1
+            run_length = run_end - position
+            if code_ticks == 0:
+                code_ticks = run_length
+            elif code_ticks == run_length:
+                code_ticks = 0
+            cell.append(stripped[position:run_end])
+            position = run_end
+            continue
+        if char == "|" and code_ticks == 0:
+            cells.append("".join(cell).strip())
+            cell = []
+        else:
+            cell.append(char)
+        position += 1
+    cells.append("".join(cell).strip())
     return cells if len(cells) >= 2 else None
 
 
@@ -91,7 +173,9 @@ def is_table_separator(cells: list[str] | None) -> bool:
 
 def render_table(headers: list[str], rows: list[list[str]]) -> str:
     width = len(headers)
-    normalized = [(row + [""] * width)[:width] for row in rows]
+    for row in rows:
+        if len(row) != width:
+            raise ValueError(f"Markdown table row has {len(row)} cells; expected {width}")
     parts = [
         '<section style="margin:22px 0;overflow-x:auto;">',
         f'<table style="width:100%;border-collapse:collapse;table-layout:fixed;color:{COLORS["ink"]};">',
@@ -104,7 +188,7 @@ def render_table(headers: list[str], rows: list[list[str]]) -> str:
             f"<span>{inline_markup(header)}</span></th>"
         )
     parts.append("</tr></thead><tbody>")
-    for row in normalized:
+    for row in rows:
         parts.append("<tr>")
         for cell in row:
             parts.append(
@@ -122,16 +206,26 @@ def extract_tables(source: str) -> tuple[str, dict[str, str]]:
     lines = source.splitlines()
     output: list[str] = []
     tables: dict[str, str] = {}
-    in_fence = False
+    fence_char = ""
+    fence_length = 0
     index = 0
     while index < len(lines):
         stripped = lines[index].strip()
-        if stripped.startswith(("```", "~~~")):
-            in_fence = not in_fence
+        fence_match = re.match(r"^(`{3,}|~{3,})(.*)$", stripped)
+        if fence_match and not fence_char:
+            marker = fence_match.group(1)
+            fence_char = marker[0]
+            fence_length = len(marker)
             output.append(lines[index])
             index += 1
             continue
-        header = table_cells(lines[index]) if not in_fence else None
+        if fence_char and re.fullmatch(fr"{re.escape(fence_char)}{{{fence_length},}}\s*", stripped):
+            fence_char = ""
+            fence_length = 0
+            output.append(lines[index])
+            index += 1
+            continue
+        header = table_cells(lines[index]) if not fence_char else None
         separator = table_cells(lines[index + 1]) if header and index + 1 < len(lines) else None
         if header and is_table_separator(separator) and len(header) == len(separator or []):
             rows: list[list[str]] = []
@@ -207,6 +301,8 @@ def render_markdown(source: str) -> tuple[str, dict[str, int | str]]:
     code_lines: list[str] = []
     code_lang = ""
     in_code = False
+    code_fence_char = ""
+    code_fence_length = 0
     chapter_index = 0
 
     def flush_paragraph() -> None:
@@ -251,7 +347,9 @@ def render_markdown(source: str) -> tuple[str, dict[str, int | str]]:
     for raw in lines + [""]:
         stripped = raw.strip()
         if in_code:
-            if stripped.startswith("```"):
+            if re.fullmatch(
+                fr"{re.escape(code_fence_char)}{{{code_fence_length},}}\s*", stripped
+            ):
                 code = html.escape("\n".join(code_lines))
                 lang_badge = (
                     f'<p style="margin:0 0 10px;color:#94A3B8;font-size:12px;">'
@@ -270,16 +368,22 @@ def render_markdown(source: str) -> tuple[str, dict[str, int | str]]:
                 code_lines.clear()
                 code_lang = ""
                 in_code = False
+                code_fence_char = ""
+                code_fence_length = 0
             else:
                 code_lines.append(raw)
             continue
 
-        if stripped.startswith("```"):
+        fence_match = re.match(r"^(`{3,}|~{3,})(.*)$", stripped)
+        if fence_match:
             flush_paragraph()
             flush_quote()
             flush_list()
             in_code = True
-            code_lang = stripped[3:].strip()
+            marker = fence_match.group(1)
+            code_fence_char = marker[0]
+            code_fence_length = len(marker)
+            code_lang = fence_match.group(2).strip()
             continue
 
         if stripped in rendered_tables:

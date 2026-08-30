@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import copy
+import fcntl
 import hashlib
 import json
 import os
@@ -308,6 +309,23 @@ def atomic_write(path: Path, text: str) -> None:
     os.replace(temporary, path)
 
 
+class StateLock:
+    def __init__(self, state_path: Path) -> None:
+        self.path = state_path.with_name(state_path.name + ".lock")
+        self.handle = None
+
+    def __enter__(self) -> "StateLock":
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.handle = self.path.open("a+", encoding="utf-8")
+        fcntl.flock(self.handle.fileno(), fcntl.LOCK_EX)
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback) -> None:
+        if self.handle is not None:
+            fcntl.flock(self.handle.fileno(), fcntl.LOCK_UN)
+            self.handle.close()
+
+
 def default_paths(domain: str) -> tuple[Path, Path]:
     if domain == "text":
         return ROOT / "references/author-voice-signals.json", ROOT / "references/author-voice.md"
@@ -345,18 +363,22 @@ def _record_command(args: argparse.Namespace) -> int:
     default_state, default_memory = default_paths(args.domain)
     state_path = args.state_file or default_state
     memory_path = args.memory_file or default_memory
-    state = load_state(state_path)
-    result = record_preference(
-        state,
-        key=args.key,
-        rule=args.rule,
-        source_id=args.source_id,
-        explicit=args.explicit,
-        supersedes=args.supersedes,
-    )
-    if result["status"] == "recorded":
-        atomic_write(state_path, json.dumps(state, ensure_ascii=False, indent=2) + "\n")
-        atomic_write(memory_path, render_memory(args.domain, state))
+    with StateLock(state_path):
+        state = load_state(state_path)
+        result = record_preference(
+            state,
+            key=args.key,
+            rule=args.rule,
+            source_id=args.source_id,
+            explicit=args.explicit,
+            supersedes=args.supersedes,
+        )
+        if result["status"] == "recorded":
+            atomic_write(state_path, json.dumps(state, ensure_ascii=False, indent=2) + "\n")
+        expected_memory = render_memory(args.domain, state)
+        current_memory = memory_path.read_text(encoding="utf-8") if memory_path.exists() else ""
+        if current_memory != expected_memory:
+            atomic_write(memory_path, expected_memory)
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0
 

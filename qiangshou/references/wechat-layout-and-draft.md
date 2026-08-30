@@ -27,7 +27,7 @@
 
 正文片段使用语义标签与内联样式：
 
-- 使用 `section`、`p`、`span`、`strong`、`em`、`blockquote`、`ul`、`ol`、`li`、`pre`、`code`、`img`、`hr`、`table`、`thead`、`tbody`、`tr`、`th`、`td`。
+- 使用 `section`、`p`、`span`、`strong`、`em`、`del`、`blockquote`、`ul`、`ol`、`li`、`pre`、`code`、`img`、`hr`、`table`、`thead`、`tbody`、`tr`、`th`、`td`、`h2`、`h3`。
 - Markdown 超链接把标签与 URL 显示为普通文字，不生成 `<a>`；公众号终稿不得含可点击链接。
 - 不依赖外部 CSS、外部字体、JavaScript、CSS 变量、动画、固定定位或网格布局。
 - 不把账号会话信息写入 HTML、Markdown、日志或配置。
@@ -37,10 +37,10 @@
 先检查 Markdown 中所有本地图片的实际尺寸：
 
 ```bash
-python3 scripts/validate_wechat_images.py article.md
+python3 scripts/validate_wechat_images.py article.md --require-inspected
 ```
 
-超限时保留原图并另存等比例副本，更新 Markdown 后重跑至 PASS。再使用 `scripts/render_wechat_html.py` 生成：
+终稿检查使用 `--require-inspected`：远程或 data 图片无法在本地确认尺寸时也会失败，不自动联网下载。先换成本地原图或可核验副本；超限时保留原图并另存等比例副本，更新 Markdown 后重跑至 PASS。草稿阶段可以不加该参数，此时未检查的远程图片只产生 warning。再使用 `scripts/render_wechat_html.py` 生成：
 
 ```bash
 python3 scripts/render_wechat_html.py article.md \
@@ -51,7 +51,7 @@ python3 scripts/render_wechat_html.py article.md \
 
 预览页可以包含本地复制按钮；可复制正文片段本身不得包含脚本。
 
-图片上传或替换为可移植的 HTTPS/data 地址后，验证最终正文片段；本地绝对路径、相对路径、`file:`、超链接和危险标签均应失败：
+图片上传或替换为可移植的 HTTPS/data 地址后，验证最终正文片段；本地绝对路径、相对路径、`file:`、超链接、未允许标签、事件属性和危险内容均应失败：
 
 ```bash
 python3 scripts/validate_wechat_html.py article.wechat.html

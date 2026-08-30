@@ -1,10 +1,13 @@
 from __future__ import annotations
 
 import importlib.util
+import io
 import json
 import subprocess
 import tempfile
+import types
 import unittest
+from contextlib import redirect_stdout
 from pathlib import Path
 
 
@@ -138,6 +141,72 @@ class PromotionTests(unittest.TestCase):
             state = json.loads(state_file.read_text(encoding="utf-8"))
             self.assertEqual("effective", state["rules"]["concise-lists"]["status"])
             self.assertIn("列表只用于真实步骤", memory_file.read_text(encoding="utf-8"))
+
+    def test_concurrent_record_commands_preserve_all_updates(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            state_file = Path(directory) / "signals.json"
+            memory_file = Path(directory) / "memory.md"
+            processes = []
+            for index in range(6):
+                processes.append(
+                    subprocess.Popen(
+                        [
+                            "python3", str(SCRIPT), "record", "--domain", "text",
+                            "--key", f"rule-{index}", "--rule", f"抽象规则 {index}",
+                            "--source-id", f"final-{index}",
+                            "--state-file", str(state_file), "--memory-file", str(memory_file),
+                        ],
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                    )
+                )
+            for process in processes:
+                stdout, stderr = process.communicate(timeout=10)
+                self.assertEqual(0, process.returncode, (stdout, stderr))
+            state = json.loads(state_file.read_text(encoding="utf-8"))
+            self.assertEqual(6, len(state["rules"]))
+            self.assertEqual(6, state["revision"])
+
+    def test_memory_is_repaired_after_interrupted_second_write(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            state_file = Path(directory) / "signals.json"
+            memory_file = Path(directory) / "memory.md"
+            args = types.SimpleNamespace(
+                domain="text",
+                key="repairable",
+                rule="只保存抽象规则",
+                source_id="final-a",
+                explicit=False,
+                supersedes=[],
+                state_file=state_file,
+                memory_file=memory_file,
+            )
+            original_write = self_evolution.atomic_write
+            calls = 0
+
+            def fail_second_write(path: Path, text: str) -> None:
+                nonlocal calls
+                calls += 1
+                if calls == 2:
+                    raise OSError("simulated memory write failure")
+                original_write(path, text)
+
+            self_evolution.atomic_write = fail_second_write
+            try:
+                with self.assertRaisesRegex(OSError, "simulated"):
+                    self_evolution._record_command(args)
+            finally:
+                self_evolution.atomic_write = original_write
+
+            self.assertTrue(state_file.exists())
+            self.assertFalse(memory_file.exists())
+            with redirect_stdout(io.StringIO()):
+                self_evolution._record_command(args)
+            state = self_evolution.load_state(state_file)
+            self.assertEqual(
+                self_evolution.render_memory("text", state),
+                memory_file.read_text(encoding="utf-8"),
+            )
 
 
 class TriggerTests(unittest.TestCase):

@@ -50,7 +50,7 @@ python3 scripts/self_evolution.py record --domain text \
   --source-id final-text-0123456789abcdef
 ```
 
-脚本原子更新对应的 `*-signals.json` 台账和 Markdown 记忆。同一终稿 ID 对同一 key 只计一次；已有明确规则不会被之后的推断覆盖。key、source ID 与规则不得包含项目名、人物、事实或私人内容。
+脚本用进程锁串行执行完整的读取、修改和写回；`*-signals.json` 台账是唯一真实数据源并以单文件原子替换写入，Markdown 记忆由台账确定性重建。若记忆写入中断，下次记录会自动按台账修复。同一终稿 ID 对同一 key 只计一次；已有明确规则不会被之后的推断覆盖。key、source ID 与规则不得包含项目名、人物、事实或私人内容。
 
 ## 4. 两套记忆
 

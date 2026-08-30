@@ -56,7 +56,11 @@ def image_dimensions(path: Path) -> tuple[int, int]:
     raise ValueError("unsupported or invalid raster image")
 
 
-def validate_markdown_images(markdown: Path, max_side: int = MAX_SIDE) -> dict[str, object]:
+def validate_markdown_images(
+    markdown: Path,
+    max_side: int = MAX_SIDE,
+    require_inspected: bool = False,
+) -> dict[str, object]:
     errors: list[str] = []
     warnings: list[str] = []
     checked: list[dict[str, object]] = []
@@ -65,7 +69,10 @@ def validate_markdown_images(markdown: Path, max_side: int = MAX_SIDE) -> dict[s
         value = raw_source.strip().strip("<>")
         parsed = urlparse(value)
         if parsed.scheme in {"http", "https", "data"}:
-            warnings.append(f"remote image dimensions not inspected: {value}")
+            message = f"remote image dimensions not inspected: {value}"
+            warnings.append(message)
+            if require_inspected:
+                errors.append(message)
             continue
         image_path = Path(value)
         if not image_path.is_absolute():
@@ -93,8 +100,13 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("markdown", type=Path)
     parser.add_argument("--max-side", type=int, default=MAX_SIDE)
+    parser.add_argument(
+        "--require-inspected",
+        action="store_true",
+        help="fail when a referenced remote or data image cannot be dimension-checked locally",
+    )
     args = parser.parse_args()
-    report = validate_markdown_images(args.markdown, args.max_side)
+    report = validate_markdown_images(args.markdown, args.max_side, args.require_inspected)
     print(json.dumps(report, ensure_ascii=False, indent=2))
     return 0 if report["status"] == "PASS" else 1
 
