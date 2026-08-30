@@ -1,4 +1,4 @@
 interface:
   display_name: "枪手"
-  short_description: "把真实项目写成公众号长文与中英双语专业 GitHub README"
-  default_prompt: "使用 $qiangshou，核验我的真实项目素材，写成公众号长文或可一键切换中英文的专业 GitHub README。"
+  short_description: "把真实项目、人物故事与公共争议写成长文或专业 README"
+  default_prompt: "使用 $qiangshou，核验我的项目、人物或公开争议素材，写成长文、短评或可一键切换中英文的专业 GitHub README。"

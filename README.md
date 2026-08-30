@@ -9,8 +9,8 @@
 
 ### 把真实技术经历，写成有人愿意读完的公众号长文
 
-[![GitHub Stars](https://img.shields.io/github/stars/powerycy/qiangshou-skill?style=for-the-badge&logo=github&label=Stars&color=f5b301)](https://github.com/powerycy/qiangshou-skill/stargazers)
-[![Version](https://img.shields.io/badge/version-0.1-4c8bf5?style=for-the-badge)](https://github.com/powerycy/qiangshou-skill/releases/tag/v0.1)
+[![GitHub Stars](https://img.shields.io/github/stars/shengjidaguai-china/qiangshou-skill?style=for-the-badge&logo=github&label=Stars&color=f5b301)](https://github.com/shengjidaguai-china/qiangshou-skill/stargazers)
+[![Version](https://img.shields.io/badge/version-0.1-4c8bf5?style=for-the-badge)](https://github.com/shengjidaguai-china/qiangshou-skill/releases/tag/v0.1)
 [![Codex Skill](https://img.shields.io/badge/Codex-Skill-7c5cff?style=for-the-badge)](./qiangshou/SKILL.md)
 
 **如果枪手对你有帮助，请点一个 Star。你的 Star 会帮助更多独立开发者发现它。**
@@ -172,7 +172,7 @@
 ### 方式一：复制 Skill 文件夹
 
 ```bash
-git clone https://github.com/powerycy/qiangshou-skill.git
+git clone https://github.com/shengjidaguai-china/qiangshou-skill.git
 mkdir -p ~/.codex/skills
 cp -R qiangshou-skill/qiangshou ~/.codex/skills/qiangshou
 ```
@@ -182,7 +182,7 @@ cp -R qiangshou-skill/qiangshou ~/.codex/skills/qiangshou
 ### 方式二：仅更新已有版本
 
 ```bash
-git clone https://github.com/powerycy/qiangshou-skill.git
+git clone https://github.com/shengjidaguai-china/qiangshou-skill.git
 cp -R qiangshou-skill/qiangshou/. ~/.codex/skills/qiangshou/
 ```
 
@@ -274,6 +274,6 @@ qiangshou/
 
 ### ⭐ Star 是对独立开发最直接的支持
 
-[给枪手一个 Star](https://github.com/powerycy/qiangshou-skill) · [提交问题](https://github.com/powerycy/qiangshou-skill/issues) · [查看版本](https://github.com/powerycy/qiangshou-skill/releases)
+[给枪手一个 Star](https://github.com/shengjidaguai-china/qiangshou-skill) · [提交问题](https://github.com/shengjidaguai-china/qiangshou-skill/issues) · [查看版本](https://github.com/shengjidaguai-china/qiangshou-skill/releases)
 
 </div>

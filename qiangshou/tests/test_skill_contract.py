@@ -18,6 +18,9 @@ class SkillContractTests(unittest.TestCase):
         cls.evolution = (ROOT / "references" / "self-evolution.md").read_text(
             encoding="utf-8"
         )
+        cls.counter_narrative = (
+            ROOT / "references" / "micro-detail-and-counter-narrative.md"
+        ).read_text(encoding="utf-8")
         cls.readme = (ROOT / "references" / "github-readme.md").read_text(
             encoding="utf-8"
         )
@@ -49,6 +52,22 @@ class SkillContractTests(unittest.TestCase):
         self.assertIn("单篇章节结构", self.evolution)
         self.assertIn("不能进入文字或视觉记忆", self.evolution)
         self.assertIn("不能晋升为固定引擎", self.evolution)
+
+    def test_public_counter_narrative_preserves_truth_and_privacy_boundaries(self) -> None:
+        combined = self.skill + self.writing + self.counter_narrative + self.scenarios
+        for term in (
+            "可核验公开事实",
+            "有归属的个人陈述",
+            "作者判断",
+            "纯属虚构",
+            "高敏信息",
+            "指代检查",
+            "长、中、短三档压缩",
+            "不能进入 `author-voice.md`",
+        ):
+            self.assertIn(term, combined)
+        self.assertIn("在世人物的细节叙事与公共反叙事", self.scenarios)
+        self.assertIn("不升级为身体羞辱", self.scenarios)
 
     def test_self_evolution_documents_persistent_commands(self) -> None:
         self.assertIn("source-id", self.evolution)

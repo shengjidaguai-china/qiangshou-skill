@@ -8,10 +8,11 @@ from collections import Counter
 import re
 import sys
 from pathlib import Path
+from urllib.parse import unquote, urlparse
 
 
 SYNC_RE = re.compile(r"<!--\s*README_SYNC:\s*source=([^;>]+);\s*updated=(\d{4}-\d{2}-\d{2})\s*-->")
-FENCE_RE = re.compile(r"```([^\n`]*)\n(.*?)\n```", re.DOTALL)
+FENCE_START_RE = re.compile(r"^\s{0,3}(`{3,}|~{3,})(.*)$")
 MD_LINK_RE = re.compile(r"!?\[[^\]]*\]\(([^)\s]+)(?:\s+[^)]*)?\)")
 HTML_LINK_RE = re.compile(r"(?:href|src)=[\"']([^\"']+)[\"']", re.IGNORECASE)
 TOKEN_RE = re.compile(
@@ -31,10 +32,38 @@ def extract_targets(text: str) -> set[str]:
     }
 
 
+def parse_fenced_blocks(text: str) -> tuple[list[tuple[str, str]], bool]:
+    blocks: list[tuple[str, str]] = []
+    fence_char = ""
+    fence_length = 0
+    language = ""
+    body: list[str] = []
+    for line in text.splitlines():
+        if not fence_char:
+            match = FENCE_START_RE.match(line)
+            if not match:
+                continue
+            marker = match.group(1)
+            fence_char = marker[0]
+            fence_length = len(marker)
+            language = match.group(2).strip().split(maxsplit=1)[0].lower() if match.group(2).strip() else ""
+            body = []
+            continue
+        if re.fullmatch(fr"\s{{0,3}}{re.escape(fence_char)}{{{fence_length},}}\s*", line):
+            blocks.append((language, "\n".join(body)))
+            fence_char = ""
+            fence_length = 0
+            language = ""
+            body = []
+        else:
+            body.append(line)
+    return blocks, bool(fence_char)
+
+
 def extract_code_blocks(text: str) -> Counter[tuple[str, str]]:
     blocks: list[tuple[str, str]] = []
-    for info, block in FENCE_RE.findall(text):
-        language = info.strip().split(maxsplit=1)[0].lower() if info.strip() else ""
+    parsed, _ = parse_fenced_blocks(text)
+    for language, block in parsed:
         if language in {"mermaid", "text", "plaintext", "ascii"}:
             continue
         blocks.append((language, re.sub(r"\s+", " ", block.strip())))
@@ -42,8 +71,29 @@ def extract_code_blocks(text: str) -> Counter[tuple[str, str]]:
 
 
 def extract_tokens(text: str) -> set[str]:
-    code = "\n".join(block for _, block in FENCE_RE.findall(text))
+    parsed, _ = parse_fenced_blocks(text)
+    code = "\n".join(block for _, block in parsed)
     return set(TOKEN_RE.findall(code))
+
+
+def target_path(target: str) -> str:
+    parsed = urlparse(target)
+    return unquote(parsed.path).removeprefix("./")
+
+
+def missing_local_targets(readme: Path, text: str) -> list[str]:
+    missing: list[str] = []
+    for target in sorted(extract_targets(text)):
+        parsed = urlparse(target)
+        if parsed.scheme or parsed.netloc or target.startswith(("#", "/")):
+            continue
+        local = unquote(parsed.path)
+        if not local:
+            continue
+        candidate = (readme.parent / local).resolve()
+        if not candidate.exists():
+            missing.append(target)
+    return missing
 
 
 def validate(primary: Path, secondary: Path) -> list[str]:
@@ -60,9 +110,9 @@ def validate(primary: Path, secondary: Path) -> list[str]:
 
     primary_head = primary_text[:2000]
     secondary_head = secondary_text[:2000]
-    if secondary.name not in extract_targets(primary_head):
+    if secondary.name not in {target_path(target) for target in extract_targets(primary_head)}:
         errors.append(f"{primary.name} does not link to {secondary.name} in its first screen")
-    if primary.name not in extract_targets(secondary_head):
+    if primary.name not in {target_path(target) for target in extract_targets(secondary_head)}:
         errors.append(f"{secondary.name} does not link to {primary.name} in its first screen")
 
     primary_sync = SYNC_RE.search(primary_head)
@@ -87,6 +137,11 @@ def validate(primary: Path, secondary: Path) -> list[str]:
         if missing_primary:
             errors.append(f"Targets missing from {primary.name}: {', '.join(missing_primary)}")
 
+    for path, text in ((primary, primary_text), (secondary, secondary_text)):
+        missing = missing_local_targets(path, text)
+        if missing:
+            errors.append(f"Missing local targets in {path.name}: {', '.join(missing)}")
+
     primary_tokens = extract_tokens(primary_text)
     secondary_tokens = extract_tokens(secondary_text)
     if primary_tokens != secondary_tokens:
@@ -95,7 +150,8 @@ def validate(primary: Path, secondary: Path) -> list[str]:
     for path, text in ((primary, primary_text), (secondary, secondary_text)):
         if PLACEHOLDER_RE.search(text):
             errors.append(f"Placeholder marker found in {path.name}")
-        if text.count("```") % 2:
+        _, unbalanced = parse_fenced_blocks(text)
+        if unbalanced:
             errors.append(f"Unbalanced fenced code blocks in {path.name}")
 
     return errors
