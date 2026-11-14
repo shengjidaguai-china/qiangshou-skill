@@ -3,7 +3,7 @@
   <a href="https://github.com/shengjidaguai-china">点击组织首页右上角 <strong>Follow</strong></a>，及时获取新项目与共建活动
 </p>
 
-<!-- README_SYNC: source=main@291ebb7; updated=2026-11-15 -->
+<!-- README_SYNC: source=main@006074f; updated=2026-11-15 -->
 
 <p align="center">
   <a href="./README.md">简体中文</a> · English
@@ -16,8 +16,7 @@
 ### Turn real engineering work into a long-form article people finish reading
 
 [![GitHub Stars](https://img.shields.io/github/stars/shengjidaguai-china/qiangshou-skill?style=for-the-badge&logo=github&label=Stars&color=f5b301)](https://github.com/shengjidaguai-china/qiangshou-skill/stargazers)
-[![Version](https://img.shields.io/badge/version-0.2-4c8bf5?style=for-the-badge)](https://github.com/shengjidaguai-china/qiangshou-skill/tags)
-[![CI](https://github.com/shengjidaguai-china/qiangshou-skill/actions/workflows/ci.yml/badge.svg)](https://github.com/shengjidaguai-china/qiangshou-skill/actions/workflows/ci.yml)
+[![Version](https://img.shields.io/badge/version-0.1-4c8bf5?style=for-the-badge)](https://github.com/shengjidaguai-china/qiangshou-skill/releases/tag/v0.1)
 [![Codex Skill](https://img.shields.io/badge/Codex-Skill-7c5cff?style=for-the-badge)](./qiangshou/SKILL.md)
 [![License: Non-Commercial](https://img.shields.io/badge/License-Non--Commercial-blue.svg)](./LICENSE)
 [![Issues](https://img.shields.io/github/issues/shengjidaguai-china/qiangshou-skill?style=for-the-badge)](https://github.com/shengjidaguai-china/qiangshou-skill/issues)
@@ -125,11 +124,7 @@ Whenever a final draft is confirmed, or both the visuals and the copyable WeChat
 
 Self-evolution runs on anonymous draft IDs and a local signal ledger: deterministic de-duplication, promotion and memory sync, not model retraining. Qiangshou never stores the article itself, and never learns facts, opinions, people, project names, awards or one-off chapter structures.
 
-### 8. Mode routing
-
-Seven task modes each have explicit triggers, required reference files and defined outputs. The mode is decided once from the routing table in `SKILL.md`, so no boundary file gets skipped, and the long-form article rules never leak into a README task — or the other way around.
-
-### 9. WeChat delivery
+### 8. WeChat delivery
 
 Depending on what the author authorizes, Qiangshou can also produce:
 
@@ -150,14 +145,14 @@ Fact tables, progression tables and visual blueprints stay internal unless asked
 | Task modes | 7 |
 | Markdown reference modules | 11 |
 | Persistent signal ledgers | 2 |
-| Real test scenarios | 17 |
+| Real test scenarios | 15 |
 | Deterministic tools | 6 |
 | High-level writing intents | 2 |
 | Dominant progressions | 5 |
 | Evidence types | 5 |
 | Technical writing steps | 6 |
 | Dynamic memory files | 2 |
-| Automated behaviour tests | 48 |
+| Automated behaviour tests | 45 |
 | Rules learned per final draft | 2 |
 | Effective rules per memory | 15 |
 
@@ -241,7 +236,6 @@ Back up the dynamic memory and signal ledger first — overwriting them loses th
 ```text
 Codex 宿主模型
   └── SKILL.md 控制与任务路由
-      ├── 模式路由表（7 种模式 → 必读文件 → 交付物）
       ├── 11 个按需加载的 Markdown 参考模块
       ├── 自适应编排与五类事实边界
       ├── 文字 / 视觉双记忆与匿名信号台账
@@ -279,7 +273,7 @@ qiangshou/
 │   ├── validate_wechat_images.py
 │   └── verify_content_preservation.py
 └── tests/
-    └── 48 behaviour and contract tests
+    └── 45 behaviour and contract tests
 ```
 
 ## Maintenance and tests
@@ -291,15 +285,15 @@ cd qiangshou
 python3 -B -m unittest discover -s tests -q
 ```
 
-GitHub Actions runs the same suite on every push and pull request, and the CI badge reports the real result. New behaviour starts as a verifiable input and a list of failure signals in `references/test-scenarios.md`, before any implementation.
+New behaviour starts as a verifiable input and a list of failure signals in `references/test-scenarios.md`, before any implementation.
 
 When changing the Skill, do not overwrite `references/author-voice.md`, `references/visual-preferences.md` or the two `*-signals.json` files: they are runtime memory maintained by `scripts/self_evolution.py`.
 
 ## Version
 
-Current source version: **0.2**
+Current source version: **0.1**
 
-0.2 adds the task-mode routing table, a maintenance and self-check entry point, test scenarios for review-only mode and for an English-primary README, and wires CI into the repository. Published tags live on the [Tags](https://github.com/shengjidaguai-china/qiangshou-skill/tags) page.
+Published tags live on the [Releases](https://github.com/shengjidaguai-china/qiangshou-skill/releases) page.
 
 ## License
 
