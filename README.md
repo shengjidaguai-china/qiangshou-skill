@@ -3,6 +3,12 @@
   <a href="https://github.com/shengjidaguai-china">点击组织首页右上角 <strong>Follow</strong></a>，及时获取新项目与共建活动
 </p>
 
+<!-- README_SYNC: source=main@291ebb7; updated=2026-11-15 -->
+
+<p align="center">
+  简体中文 · <a href="./README_EN.md">English</a>
+</p>
+
 <div align="center">
 
 # 枪手 QIANGSHOU
@@ -10,8 +16,12 @@
 ### 把真实技术经历，写成有人愿意读完的公众号长文
 
 [![GitHub Stars](https://img.shields.io/github/stars/shengjidaguai-china/qiangshou-skill?style=for-the-badge&logo=github&label=Stars&color=f5b301)](https://github.com/shengjidaguai-china/qiangshou-skill/stargazers)
-[![Version](https://img.shields.io/badge/version-0.1-4c8bf5?style=for-the-badge)](https://github.com/shengjidaguai-china/qiangshou-skill/releases/tag/v0.1)
+[![Version](https://img.shields.io/badge/version-0.2-4c8bf5?style=for-the-badge)](https://github.com/shengjidaguai-china/qiangshou-skill/tags)
+[![CI](https://github.com/shengjidaguai-china/qiangshou-skill/actions/workflows/ci.yml/badge.svg)](https://github.com/shengjidaguai-china/qiangshou-skill/actions/workflows/ci.yml)
 [![Codex Skill](https://img.shields.io/badge/Codex-Skill-7c5cff?style=for-the-badge)](./qiangshou/SKILL.md)
+[![License: Non-Commercial](https://img.shields.io/badge/License-Non--Commercial-blue.svg)](./LICENSE)
+[![Issues](https://img.shields.io/github/issues/shengjidaguai-china/qiangshou-skill?style=for-the-badge)](https://github.com/shengjidaguai-china/qiangshou-skill/issues)
+[![Last Commit](https://img.shields.io/github/last-commit/shengjidaguai-china/qiangshou-skill?style=for-the-badge)](https://github.com/shengjidaguai-china/qiangshou-skill/commits/main)
 
 **如果枪手对你有帮助，请点一个 Star。你的 Star 会帮助更多独立开发者发现它。**
 
@@ -115,7 +125,11 @@
 
 自进化由匿名终稿 ID 和本地信号台账确定性去重、晋升并同步 Markdown 记忆，不是重新训练模型。枪手不会保存终稿正文，也不会学习文章事实、观点、人物、项目名、奖项或单篇章节结构。
 
-### 8. 公众号交付
+### 8. 模式路由
+
+七种任务模式各有明确的触发信号、必读文件和交付物。模式在 `SKILL.md` 的路由表里一次判定，避免漏读边界文件，也避免把公众号长文规则套进 README，或把 README 规则套进排版流程。
+
+### 9. 公众号交付
 
 根据用户授权范围，枪手可以继续生成：
 
@@ -133,17 +147,17 @@
 
 | 能力 | 当前版本 |
 | --- | ---: |
-| 任务模式 | 6 种 |
-| Markdown 参考模块 | 9 个 |
+| 任务模式 | 7 种 |
+| Markdown 参考模块 | 11 个 |
 | 持久化信号台账 | 2 份 |
-| 真实测试场景 | 11 类 |
-| 确定性工具 | 5 个 |
+| 真实测试场景 | 17 类 |
+| 确定性工具 | 6 个 |
 | 高层写作意图 | 2 类 |
 | 主导推进线 | 5 类 |
 | 事实类型 | 5 类 |
 | 技术写作步骤 | 6 步 |
 | 动态记忆文件 | 2 份 |
-| 自动化行为测试 | 25 项 |
+| 自动化行为测试 | 48 项 |
 | 单篇终稿学习上限 | 2 条 |
 | 单套记忆有效规则上限 | 15 条 |
 
@@ -169,21 +183,25 @@
 
 ## 安装
 
-### 方式一：复制 Skill 文件夹
+枪手是一份纯 Markdown 与 Python 标准库组成的 Skill 文件夹，复制到宿主的 skills 目录即可使用。常见宿主路径如下，按实际使用的宿主任选其一：
+
+- Codex：`~/.codex/skills/qiangshou`
+- Claude Code：`~/.claude/skills/qiangshou`
+- 通用 Agent 目录：`~/.agents/skills/qiangshou`
 
 ```bash
 git clone https://github.com/shengjidaguai-china/qiangshou-skill.git
-mkdir -p ~/.codex/skills
-cp -R qiangshou-skill/qiangshou ~/.codex/skills/qiangshou
+mkdir -p ~/.agents/skills
+cp -R qiangshou-skill/qiangshou ~/.agents/skills/qiangshou
 ```
 
-重新打开 Codex 后即可使用 `$qiangshou`。
+重新打开宿主即可使用 `$qiangshou`。
 
-### 方式二：仅更新已有版本
+### 仅更新已有版本
 
 ```bash
 git clone https://github.com/shengjidaguai-china/qiangshou-skill.git
-cp -R qiangshou-skill/qiangshou/. ~/.codex/skills/qiangshou/
+cp -R qiangshou-skill/qiangshou/. ~/.agents/skills/qiangshou/
 ```
 
 更新前请备份以下动态记忆和信号台账，直接覆盖会丢失已经学习的规则：
@@ -223,10 +241,11 @@ cp -R qiangshou-skill/qiangshou/. ~/.codex/skills/qiangshou/
 ```text
 Codex 宿主模型
   └── SKILL.md 控制与任务路由
-      ├── 9 个按需加载的 Markdown 参考模块
+      ├── 模式路由表（7 种模式 → 必读文件 → 交付物）
+      ├── 11 个按需加载的 Markdown 参考模块
       ├── 自适应编排与五类事实边界
       ├── 文字 / 视觉双记忆与匿名信号台账
-      └── 5 个确定性 Python 工具
+      └── 6 个确定性 Python 工具
 ```
 
 枪手采用渐进式知识加载：主文件负责流程和边界，详细方法按任务读取，减少上下文膨胀和规则冲突。
@@ -243,28 +262,48 @@ qiangshou/
 │   ├── author-voice-signals.json
 │   ├── facts-and-strategy.md
 │   ├── format-preserving-layout.md
+│   ├── github-readme.md
+│   ├── micro-detail-and-counter-narrative.md
 │   ├── review-and-deliverables.md
 │   ├── self-evolution.md
 │   ├── test-scenarios.md
-│   ├── visual-preferences.md
 │   ├── visual-preference-signals.json
+│   ├── visual-preferences.md
 │   ├── wechat-layout-and-draft.md
 │   └── writing.md
 ├── scripts/
 │   ├── render_wechat_html.py
 │   ├── self_evolution.py
+│   ├── validate_readme_pair.py
 │   ├── validate_wechat_html.py
 │   ├── validate_wechat_images.py
 │   └── verify_content_preservation.py
 └── tests/
-    └── 25 项行为与合同测试
+    └── 48 项行为与合同测试
 ```
+
+## 维护与测试
+
+行为测试只依赖 Python 标准库，任何一台装了 Python 3.9+ 的机器都能本地运行：
+
+```bash
+cd qiangshou
+python3 -B -m unittest discover -s tests -q
+```
+
+仓库使用 GitHub Actions 在每次 push 与 PR 时自动执行同一套测试，CI 徽章反映的是真实运行结果。新增行为先在 `references/test-scenarios.md` 写清可验收的输入和失败信号，再写实现。
+
+修改 Skill 时不要覆盖 `references/author-voice.md`、`references/visual-preferences.md` 和两个 `*-signals.json`：它们是运行时记忆，由 `scripts/self_evolution.py` 维护。
 
 ## 版本
 
-当前版本：**0.1**
+当前源码版本：**0.2**
 
-当前源码包含自适应编排、事实核验、自动终稿保护、文字 / 视觉双记忆自进化和更严格的公众号交付校验。
+0.2 增加了任务模式路由表、维护与自检入口、审稿模式与英文主语言 README 两个测试场景，并为仓库接入 CI。发布 tag 见 [Tags](https://github.com/shengjidaguai-china/qiangshou-skill/tags)。
+
+## 许可证
+
+本仓库采用 [PolyForm Noncommercial License 1.0.0](./LICENSE)：源码公开，个人、学习、教育、研究及其他非商业用途可免费使用与分发，商业使用需事先取得授权。条款以 `LICENSE` 文件原文为准。
 
 ## 支持枪手
 
