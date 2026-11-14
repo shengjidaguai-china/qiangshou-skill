@@ -82,6 +82,32 @@ class SkillContractTests(unittest.TestCase):
         self.assertIn("英文按英语开发者", combined)
         self.assertIn("validate_readme_pair.py", combined)
 
+    def test_mode_routing_maps_triggers_to_required_files(self) -> None:
+        for term in (
+            "模式路由",
+            "内容冻结排版",
+            "公众号成稿与草稿",
+            "GitHub README",
+            "review-and-deliverables.md",
+            "wechat-layout-and-draft.md",
+            "github-readme.md",
+            "format-preserving-layout.md",
+        ):
+            self.assertIn(term, self.skill)
+        self.assertIn("漏读会丢边界", self.skill)
+
+    def test_review_mode_never_edits_without_authorization(self) -> None:
+        combined = self.skill + self.scenarios
+        for term in ("只审稿不改稿", "不产出改写后的正文", "不触发自进化"):
+            self.assertIn(term, combined)
+
+    def test_english_primary_readme_keeps_stable_naming(self) -> None:
+        combined = self.skill + self.readme + self.scenarios
+        for term in ("README_CN.md", "README.zh-CN.md", "英文为主语言"):
+            self.assertIn(term, combined)
+        self.assertIn("英文为主语言", self.readme)
+        self.assertIn("沿用仓库已有的稳定命名", self.scenarios)
+
     def test_readme_professionalism_is_evidence_based(self) -> None:
         for term in ("先读仓库", "基线过滤", "快速开始", "许可证", "Star"):
             self.assertIn(term, self.readme)

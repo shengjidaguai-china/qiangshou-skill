@@ -17,6 +17,20 @@ description: 将独立开发者、女性开发者和 AI 创作者的真实项目
 - **公众号成稿与草稿**：把确认后的 Markdown 转为微信兼容内联 HTML；仅在用户明确授权时操作已登录后台并保存草稿。
 - **GitHub README**：读取真实代码与项目证据，生成或优化 `README.md`；中文项目默认同时交付 `README_EN.md`，两份文件顶部互链，一键切换语言。标题和一句话价值之后优先放 Star 行动、有效徽章与社区信号；专业感同时来自可运行示例、架构、测试、维护状态、支持者和清晰的许可边界，不来自夸张营销。用户要求新增许可证时，优先采用权利范围匹配的成熟现成协议及其官方原文，避免自行拼接条款。
 
+### 模式路由
+
+先确定模式，再按表读取文件。漏读会丢边界，过度加载会挤占上下文；人物与公共争议叙事是按需叠加的模块，不是独立模式。
+
+| 模式 | 典型触发 | 必读 | 交付 |
+| --- | --- | --- | --- |
+| 从零写作 / 重写旧稿 | “写成公众号长文”“帮我重写这篇” | facts-and-strategy.md、writing.md、author-voice.md、visual-preferences.md | 正文、标题、摘要 |
+| 观点实证长文 | “用我的实验和经历纠正一种认知” | facts-and-strategy.md、writing.md、author-voice.md | 正文 |
+| 审稿 | “看看这篇文章”“给点建议” | review-and-deliverables.md、writing.md | 问题清单与改法，不动正文 |
+| 内容冻结排版 | “这是终稿”“只加小标题” | format-preserving-layout.md | 排版稿与错字记录 |
+| 公众号成稿与草稿 | “排成可复制 HTML”“存进后台草稿” | wechat-layout-and-draft.md | 内联 HTML、预览、排版报告、草稿 |
+| GitHub README | “重写 README”“补一份英文版” | github-readme.md | README.md 与 README_EN.md |
+| 人物／公共争议叙事 | 素材主要靠人物关系或公共冲突推进 | 叠加 micro-detail-and-counter-narrative.md | 按读者背景选长文、中帖或一句话 |
+
 ### 终稿保护
 
 用户把当前文案称为“终稿”“发布版”“最终文案”“最终采用版本”“我已经改完了”，明确要求“不要改文案”，或本次写作已经完成“配图 + 公众号可复制 HTML”交付时，保留当前文字与顺序。除用户明确授权外只能建议，不能直接修改；即使审稿发现问题，也先说明而不动正文。用户已经删除或否决的内容不得重新加入或反复建议，只有用户主动要求恢复时再处理。
@@ -92,4 +106,14 @@ GitHub README 是独立任务模式。完成下方“读取素材，建立事实
 
 不编造事实、数据、评论、经历、效果或引语；不把医疗、法律、心理和关系建议写成保证；许可证以仓库实际文件为准。不得生成、索取、读取或保存公众号凭据，也不得把“保存草稿”扩大为发布。
 
-修改本 Skill 时，完整读取 [测试场景](references/test-scenarios.md)，按改动范围做轻量测试；不默认运行公众号、Word、图片或后台交付测试。
+## 维护与自检
+
+修改本 Skill、参考模块或脚本时，完整读取 [测试场景](references/test-scenarios.md)，按改动范围做轻量测试；不默认运行公众号、Word、图片或后台交付测试。
+
+```bash
+python3 -B -m unittest discover -s tests -q
+```
+
+新增行为先在测试场景里写清可验收的输入和失败信号，再写实现；不要为了让测试通过而放宽既有边界。
+
+`references/author-voice.md`、`references/visual-preferences.md` 与两个 `*-signals.json` 是运行时状态，由 `scripts/self_evolution.py` 维护。更新 Skill 时不要覆盖或手改它们，也不要把终稿正文、项目事实或单篇结构写进去。
